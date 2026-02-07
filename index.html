@@ -674,96 +674,318 @@
     </section>
 
     <!-- Contact Section -->
-    <section id="contact" class="glass py-16">
-        <div class="container mx-auto px-6 md:px-12">
-            <h2 class="text-4xl font-bold text-center mb-4 neon-primary animate-fade-in">Get In Touch</h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto mb-12"></div>
-            
-            <div class="max-w-4xl mx-auto">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Contact Info -->
-                    <div class="glass-dark p-8 rounded-2xl animate-fade-left delay-200">
-                        <h3 class="text-2xl font-bold mb-6 neon-secondary">Contact Information</h3>
-                        
-                        <div class="space-y-6">
-                            <div class="flex items-start">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-700 flex items-center justify-center mr-4">
-                                    <i class="fas fa-map-marker-alt text-xl"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-1 neon-primary">Location</h4>
-                                    <p class="text-gray-300">Karaikal, Puducherry, India</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center mr-4">
-                                    <i class="fas fa-envelope text-xl"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-1 neon-primary">Email</h4>
-                                    <p class="text-gray-300">saprasath15@gmail.com</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-pink-700 flex items-center justify-center mr-4">
-                                    <i class="fas fa-phone text-xl"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-1 neon-primary">Phone</h4>
-                                    <p class="text-gray-300">88259 18573</p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-start">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 flex items-center justify-center mr-4">
-                                    <i class="fas fa-share-alt text-xl"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-xl font-bold mb-1 neon-primary">Connect With Me</h4>
-                                    <div class="flex space-x-4 mt-2">
-                                        <a href="https://github.com/PRASATH-SA" target="_blank" class="w-10 h-10 rounded-full glass flex items-center justify-center text-lg hover-glow transition duration-300">
-                                            <i class="fab fa-github"></i>
-                                        </a>
-                                        <a href="https://linkedin.com/in/prasath-sa" target="_blank" class="w-10 h-10 rounded-full glass flex items-center justify-center text-lg hover-glow transition duration-300">
-                                            <i class="fab fa-linkedin-in"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Update this section in your portfolio HTML -->
+<section id="contact" class="glass py-16">
+    <div class="container mx-auto px-6 md:px-12">
+        <h2 class="text-4xl font-bold text-center mb-4 neon-primary animate-fade-in">Get In Touch</h2>
+        <div class="w-24 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto mb-12"></div>
+        
+        <div class="max-w-4xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Contact Info (unchanged) -->
+                <div class="glass-dark p-8 rounded-2xl animate-fade-left delay-200">
+                    <!-- Your existing contact info -->
+                </div>
+                
+                <!-- Contact Form (UPDATED) -->
+                <div class="glass-dark p-8 rounded-2xl animate-fade-right delay-400">
+                    <h3 class="text-2xl font-bold mb-6 neon-secondary">Send Me a Message</h3>
                     
-                    <!-- Contact Form -->
-                    <div class="glass-dark p-8 rounded-2xl animate-fade-right delay-400">
-                        <h3 class="text-2xl font-bold mb-6 neon-secondary">Send Me a Message</h3>
+                    <form id="contact-form" class="space-y-6">
+                        <!-- Name Field -->
+                        <div>
+                            <label for="name" class="block text-gray-300 mb-2">
+                                Your Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="name" name="name" 
+                                   class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500 transition duration-300"
+                                   placeholder="Enter your full name"
+                                   required
+                                   minlength="2"
+                                   maxlength="100">
+                            <div class="text-sm text-gray-500 mt-1 hidden" id="name-error"></div>
+                        </div>
                         
-                        <form id="contact-form">
-                            <div class="mb-6">
-                                <label for="name" class="block text-gray-300 mb-2">Your Name</label>
-                                <input type="text" id="name" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-cyan-500 transition duration-300" required>
-                            </div>
+                        <!-- Email Field -->
+                        <div>
+                            <label for="email" class="block text-gray-300 mb-2">
+                                Email Address <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" id="email" name="email"
+                                   class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500 transition duration-300"
+                                   placeholder="Enter your email address"
+                                   required>
+                            <div class="text-sm text-gray-500 mt-1 hidden" id="email-error"></div>
+                        </div>
+                        
+                        <!-- Phone Field (Optional) -->
+                        <div>
+                            <label for="phone" class="block text-gray-300 mb-2">
+                                Phone Number (Optional)
+                            </label>
+                            <input type="tel" id="phone" name="phone"
+                                   class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 transition duration-300"
+                                   placeholder="Enter your phone number">
+                            <div class="text-sm text-gray-500 mt-1">Include country code if international</div>
+                        </div>
+                        
+                        <!-- Message Field -->
+                        <div>
+                            <label for="message" class="block text-gray-300 mb-2">
+                                Your Message <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="message" name="message" rows="4"
+                                      class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 transition duration-300"
+                                      placeholder="Tell me about your project or inquiry..."
+                                      required
+                                      minlength="10"
+                                      maxlength="2000"></textarea>
+                            <div class="text-sm text-gray-500 mt-1 hidden" id="message-error"></div>
+                        </div>
+                        
+                        <!-- Submit Button & Status -->
+                        <div class="space-y-4">
+                            <div id="form-status" class="hidden p-4 rounded-lg"></div>
                             
-                            <div class="mb-6">
-                                <label for="email" class="block text-gray-300 mb-2">Your Email</label>
-                                <input type="email" id="email" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500 transition duration-300" required>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <label for="message" class="block text-gray-300 mb-2">Your Message</label>
-                                <textarea id="message" rows="4" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg focus:outline-none focus:border-pink-500 transition duration-300" required></textarea>
-                            </div>
-                            
-                            <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg font-medium hover:opacity-90 transition duration-300">
-                                Send Message
+                            <button type="submit" id="submit-btn" 
+                                    class="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg font-bold text-lg hover:opacity-90 transition duration-300 flex items-center justify-center">
+                                <span id="submit-text">Send Message</span>
+                                <div id="submit-spinner" class="hidden ml-3">
+                                    <div class="spinner-small"></div>
+                                </div>
                             </button>
-                        </form>
-                    </div>
+                            
+                            <p class="text-sm text-gray-500 text-center">
+                                I'll get back to you within 24-48 hours
+                            </p>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
+<!-- Add this CSS for spinner -->
+<style>
+    .spinner-small {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top: 2px solid white;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .success-message {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #4ade80;
+    }
+    
+    .error-message {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #f87171;
+    }
+</style>
+
+<!-- Add this JavaScript for form handling -->
+<script>
+    class ContactFormHandler {
+        constructor() {
+            this.apiUrl = 'https://portfolio-full-pied.vercel.app/api/contact'; // Update with your backend URL
+            this.form = document.getElementById('contact-form');
+            this.submitBtn = document.getElementById('submit-btn');
+            this.submitText = document.getElementById('submit-text');
+            this.submitSpinner = document.getElementById('submit-spinner');
+            this.formStatus = document.getElementById('form-status');
+            
+            this.init();
+        }
+        
+        init() {
+            if (this.form) {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                // Real-time validation
+                this.setupValidation();
+            }
+        }
+        
+        setupValidation() {
+            const inputs = this.form.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('blur', () => this.validateField(input));
+                input.addEventListener('input', () => this.clearError(input));
+            });
+        }
+        
+        validateField(field) {
+            const value = field.value.trim();
+            const errorElement = document.getElementById(`${field.id}-error`);
+            
+            if (field.hasAttribute('required') && !value) {
+                this.showError(field, 'This field is required');
+                return false;
+            }
+            
+            if (field.type === 'email' && value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    this.showError(field, 'Please enter a valid email address');
+                    return false;
+                }
+            }
+            
+            if (field.id === 'name' && value.length < 2) {
+                this.showError(field, 'Name must be at least 2 characters');
+                return false;
+            }
+            
+            if (field.id === 'message' && value.length < 10) {
+                this.showError(field, 'Message must be at least 10 characters');
+                return false;
+            }
+            
+            this.clearError(field);
+            return true;
+        }
+        
+        showError(field, message) {
+            const errorElement = document.getElementById(`${field.id}-error`);
+            field.classList.add('border-red-500');
+            field.classList.remove('border-cyan-500', 'border-purple-500', 'border-pink-500');
+            
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+                errorElement.classList.add('text-red-400');
+            }
+        }
+        
+        clearError(field) {
+            const errorElement = document.getElementById(`${field.id}-error`);
+            field.classList.remove('border-red-500');
+            
+            if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.classList.add('hidden');
+            }
+        }
+        
+        validateForm() {
+            let isValid = true;
+            const requiredFields = this.form.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                if (!this.validateField(field)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+        
+        async handleSubmit(e) {
+            e.preventDefault();
+            
+            if (!this.validateForm()) {
+                return;
+            }
+            
+            this.setLoading(true);
+            this.clearStatus();
+            
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim() || '',
+                message: document.getElementById('message').value.trim()
+            };
+            
+            try {
+                const response = await fetch(this.apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    this.showSuccess(data.message || 'Message sent successfully!');
+                    this.form.reset();
+                } else {
+                    this.showErrorStatus(data.message || 'Failed to send message. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                this.showErrorStatus('Network error. Please check your connection and try again.');
+            } finally {
+                this.setLoading(false);
+            }
+        }
+        
+        setLoading(isLoading) {
+            if (isLoading) {
+                this.submitText.textContent = 'Sending...';
+                this.submitSpinner.classList.remove('hidden');
+                this.submitBtn.disabled = true;
+                this.submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                this.submitText.textContent = 'Send Message';
+                this.submitSpinner.classList.add('hidden');
+                this.submitBtn.disabled = false;
+                this.submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        showSuccess(message) {
+            this.formStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-3"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            this.formStatus.className = 'success-message p-4 rounded-lg';
+            this.formStatus.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                this.formStatus.classList.add('hidden');
+            }, 5000);
+        }
+        
+        showErrorStatus(message) {
+            this.formStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-3"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            this.formStatus.className = 'error-message p-4 rounded-lg';
+            this.formStatus.classList.remove('hidden');
+        }
+        
+        clearStatus() {
+            this.formStatus.classList.add('hidden');
+            this.formStatus.innerHTML = '';
+        }
+    }
+    
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        new ContactFormHandler();
+    });
+</script>
 
     <!-- Footer -->
     <footer class="glass-dark py-8">
