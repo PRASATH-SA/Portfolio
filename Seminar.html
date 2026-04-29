@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="slides-format" content="viewport" />
+  <title>Server Side Processing and Scripting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-bg: #0f0a2a;
+      --color-bg-deep: #0a192f;
+      --color-surface: #1b2440;
+      --color-text: #eef2ff;
+      --color-text-secondary: #d5dcff;
+      --color-text-muted: #9aa8d6;
+      --color-accent-1: #7c3aed;
+      --color-accent-2: #06b6d4;
+      --color-accent-3: #a78bfa;
+      --color-glass-bg: rgba(255,255,255,0.07);
+      --color-glass-border: rgba(255,255,255,0.10);
+      --color-vignette: rgba(0,0,0,0.38);
+      --font-display: 'Instrument Serif', serif;
+      --font-body: 'Inter', sans-serif;
+    }
+  </style>
+  <style>
+    :root { --color-bg: #0f0a2a; --color-text: #eef2ff; --glow-color-rgb: 124,58,237; --color-glass-bg: rgba(255,255,255,0.07); --color-glass-border: rgba(255,255,255,0.10); }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { background: var(--color-bg); margin: 0; }
+    body { font-family: var(--font-body); color: var(--color-text); overflow: hidden; height: 100vh; width: 100vw; }
+    .deck { width: 100vw; height: 100vh; position: relative; }
+    .slide { position: absolute; inset: 0; background: var(--color-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: scale(0.96); transition: opacity 0.7s ease, transform 0.7s ease; pointer-events: none; overflow: hidden; }
+    .slide.active { opacity: 1; transform: scale(1); pointer-events: all; }
+    .slide > .content { position: relative; z-index: 2; width: 100%; max-width: 1160px; padding: clamp(1.25rem, 3vw, 3rem); }
+    .nav-controls { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; z-index: 100; background: var(--color-glass-bg); backdrop-filter: blur(12px); padding: 10px 20px; border-radius: 999px; border: 1px solid var(--color-glass-border); }
+    .nav-btn { width: 38px; height: 38px; border: none; background: var(--color-glass-bg); color: var(--color-accent-2); border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
+    .slide-dots { display: flex; gap: 8px; }
+    .slide-dots .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.18); cursor: pointer; }
+    .slide-dots .dot.active { background: var(--color-accent-2); transform: scale(1.2); }
+    .slide-counter { font-size: 0.8rem; color: var(--color-text-muted); min-width: 44px; text-align: center; }
+    .reveal { opacity: 0; transform: translateY(20px); }
+    .gradient-mesh { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(80px); animation: float-slow 12s ease-in-out infinite; }
+    .blob:nth-child(2) { animation: float-drift 15s ease-in-out infinite; }
+    .blob:nth-child(3) { animation: float-slow 18s ease-in-out infinite reverse; }
+    .slide::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 256px 256px; opacity: 0.03; mix-blend-mode: overlay; }
+    .slide::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at center, transparent 48%, var(--color-vignette) 100%); }
+    .text-glow { text-shadow: 0 0 22px rgba(var(--glow-color-rgb), 0.45), 0 0 48px rgba(var(--glow-color-rgb), 0.18); }
+    .stat-glow { text-shadow: 0 0 30px rgba(var(--glow-color-rgb), 0.55), 0 0 60px rgba(var(--glow-color-rgb), 0.22); }
+    .mouse-spotlight { position: fixed; inset: 0; z-index: 99; pointer-events: none; }
+    .bar-track { width: 100%; height: 18px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--color-accent-1), var(--color-accent-2)); }
+    @keyframes float-slow {
+      0% { transform: translate(0,0) scale(1); }
+      25% { transform: translate(60px,-40px) scale(1.12); }
+      50% { transform: translate(-30px,35px) scale(0.92); }
+      75% { transform: translate(45px,18px) scale(1.05); }
+      100% { transform: translate(0,0) scale(1); }
+    }
+    @keyframes float-drift {
+      0% { transform: translate(0,0) scale(1) rotate(0deg); }
+      33% { transform: translate(-55px,-55px) scale(1.14) rotate(3deg); }
+      66% { transform: translate(38px,28px) scale(0.88) rotate(-2deg); }
+      100% { transform: translate(0,0) scale(1) rotate(0deg); }
+    }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+    .emoji-hero { font-size: 118px; margin-bottom: 1rem; animation: float 3s ease-in-out infinite; }
+    .pill { border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); border-radius: 999px; padding: 0.4rem 0.9rem; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; } }
+  </style>
+</head>
+<body>
+<div class="mouse-spotlight"></div>
+<div class="deck">
+  <section class="slide active" data-slide="1">
+    <div class="gradient-mesh">
+      <div class="blob" style="width:480px;height:480px;top:-100px;right:-80px;background:var(--color-accent-1);opacity:.18"></div>
+      <div class="blob" style="width:300px;height:300px;bottom:-80px;left:-40px;background:var(--color-accent-2);opacity:.14"></div>
+      <div class="blob" style="width:220px;height:220px;top:42%;left:12%;background:var(--color-accent-3);opacity:.11"></div>
+    </div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1"></canvas>
+    <div class="content text-center">
+      <div class="emoji-hero">🐘</div>
+      <h1 class="reveal font-display text-[clamp(2.8rem,6vw,5.3rem)] font-black bg-linear-to-br from-accent-1 via-accent-2 to-accent-3 bg-clip-text text-transparent tracking-tight mb-4">Server Side Processing and Scripting</h1>
+      <p class="reveal text-[clamp(.92rem,1.5vw,1.3rem)] uppercase tracking-[6px] text-text-muted">PHP, file handling, email and database integration</p>
+      <p class="reveal mt-6 text-lg text-text-secondary">Seminar topic for Web Technology</p>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="2">
+    <div class="gradient-mesh">
+      <div class="blob" style="width:360px;height:360px;top:-90px;right:-70px;background:var(--color-accent-1);opacity:.08"></div>
+      <div class="blob" style="width:240px;height:240px;bottom:-50px;left:-40px;background:var(--color-accent-2);opacity:.07"></div>
+    </div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4.2vw,3.2rem)] mb-3">Agenda</h2>
+      <div class="grid grid-cols-2 gap-5 mt-8">
+        <div class="reveal flex items-start gap-4 rounded-2xl border border-glass-border bg-glass-bg p-5 backdrop-blur-xl"><div class="w-10 h-10 rounded-full bg-accent-1/80 flex items-center justify-center font-bold">1</div><div><h3 class="font-semibold text-xl">Introduction to server-side scripting</h3><p class="text-text-secondary">What it is, why PHP is used, and how it works with HTML.</p></div></div>
+        <div class="reveal flex items-start gap-4 rounded-2xl border border-glass-border bg-glass-bg p-5 backdrop-blur-xl"><div class="w-10 h-10 rounded-full bg-accent-2/80 flex items-center justify-center font-bold text-slate-900">2</div><div><h3 class="font-semibold text-xl">Simple PHP scripts</h3><p class="text-text-secondary">Variables, conditions, loops, forms, and embedding PHP inside pages.</p></div></div>
+        <div class="reveal flex items-start gap-4 rounded-2xl border border-glass-border bg-glass-bg p-5 backdrop-blur-xl"><div class="w-10 h-10 rounded-full bg-accent-3/80 flex items-center justify-center font-bold text-slate-900">3</div><div><h3 class="font-semibold text-xl">File handling and file uploading</h3><p class="text-text-secondary">Opening, reading, writing, validating, and storing uploaded files.</p></div></div>
+        <div class="reveal flex items-start gap-4 rounded-2xl border border-glass-border bg-glass-bg p-5 backdrop-blur-xl"><div class="w-10 h-10 rounded-full bg-accent-1/80 flex items-center justify-center font-bold">4</div><div><h3 class="font-semibold text-xl">Email and database integration</h3><p class="text-text-secondary">HTML email, attachments, MySQL connection, and CRUD operations.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="3">
+    <div class="gradient-mesh"><div class="blob" style="width:340px;height:340px;top:-70px;right:-70px;background:var(--color-accent-1);opacity:.08"></div><div class="blob" style="width:250px;height:250px;bottom:-60px;left:-50px;background:var(--color-accent-2);opacity:.06"></div></div>
+    <div class="content">
+      <div class="grid grid-cols-2 gap-10 items-center">
+        <div>
+          <p class="reveal pill inline-flex text-sm uppercase tracking-[4px] text-text-muted mb-4">Core idea</p>
+          <h2 class="reveal font-display text-[clamp(2rem,4vw,3.1rem)] mb-4">What is server-side scripting?</h2>
+          <p class="reveal text-lg text-text-secondary mb-4">Server-side code runs on the web server after a request arrives, processes input, and then sends generated HTML back to the browser.</p>
+          <ul class="reveal space-y-3 text-lg text-text-secondary">
+            <li>Handles forms, sessions, login systems, and business logic.</li>
+            <li>Can read files, upload documents, send emails, and access databases.</li>
+            <li>Keeps sensitive operations on the server instead of exposing them in the browser.</li>
+          </ul>
+        </div>
+        <div class="reveal rounded-3xl border border-glass-border bg-glass-bg p-8 backdrop-blur-xl">
+          <div class="grid grid-cols-1 gap-4 text-left">
+            <div class="rounded-2xl bg-slate-950/30 p-4"><div class="text-sm uppercase tracking-[4px] text-text-muted">Request</div><div class="text-2xl font-bold mt-1">Browser → Server</div></div>
+            <div class="rounded-2xl bg-slate-950/30 p-4"><div class="text-sm uppercase tracking-[4px] text-text-muted">Processing</div><div class="text-2xl font-bold mt-1">PHP executes logic</div></div>
+            <div class="rounded-2xl bg-slate-950/30 p-4"><div class="text-sm uppercase tracking-[4px] text-text-muted">Response</div><div class="text-2xl font-bold mt-1">HTML returned to user</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="4">
+    <div class="gradient-mesh"><div class="blob" style="width:330px;height:330px;top:-60px;right:-50px;background:var(--color-accent-1);opacity:.08"></div><div class="blob" style="width:220px;height:220px;bottom:-40px;left:-30px;background:var(--color-accent-3);opacity:.06"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-3">PHP and HTML together</h2>
+      <p class="reveal text-lg text-text-secondary mb-6">PHP is embedded inside HTML, so the server can generate dynamic content such as greetings, dates, form responses, and database results.</p>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="reveal rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+          <div class="text-sm uppercase tracking-[4px] text-text-muted mb-3">HTML page</div>
+<pre class="text-[15px] leading-7 text-cyan-200 whitespace-pre-wrap">&lt;h1&gt;Welcome&lt;/h1&gt;
+&lt;?php echo "Dynamic page"; ?&gt;</pre>
+        </div>
+        <div class="reveal rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+          <div class="text-sm uppercase tracking-[4px] text-text-muted mb-3">Benefits</div>
+          <ul class="space-y-3 text-lg text-text-secondary">
+            <li>Easy to connect forms with backend logic.</li>
+            <li>Useful for dynamic pages, login pages, and dashboards.</li>
+            <li>Supports direct communication with files and MySQL databases.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="5">
+    <div class="gradient-mesh"><div class="blob" style="width:350px;height:350px;top:-70px;right:-60px;background:var(--color-accent-2);opacity:.08"></div><div class="blob" style="width:240px;height:240px;bottom:-50px;left:-40px;background:var(--color-accent-1);opacity:.07"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-6">Simple PHP scripts</h2>
+      <div class="grid grid-cols-3 gap-5">
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">🔤</div><h3 class="text-xl font-semibold mb-2">Variables</h3><p class="text-text-secondary">Store values such as names, marks, or prices using <code>$variable</code>.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">⚖️</div><h3 class="text-xl font-semibold mb-2">Conditions</h3><p class="text-text-secondary">Use <code>if</code>, <code>else</code>, and <code>switch</code> to make decisions.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">🔁</div><h3 class="text-xl font-semibold mb-2">Loops</h3><p class="text-text-secondary">Repeat tasks using <code>for</code>, <code>while</code>, and <code>foreach</code>.</p></div>
+      </div>
+      <div class="reveal mt-6 rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+<pre class="text-[15px] leading-7 text-emerald-200 whitespace-pre-wrap">&lt;?php
+$name = "Prasath";
+if ($name == "Prasath") {
+    echo "Hello, Prasath";
+}
+?&gt;</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="6">
+    <div class="gradient-mesh"><div class="blob" style="width:350px;height:350px;top:-60px;right:-70px;background:var(--color-accent-1);opacity:.08"></div><div class="blob" style="width:240px;height:240px;bottom:-50px;left:-40px;background:var(--color-accent-2);opacity:.07"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-4">File handling in PHP</h2>
+      <p class="reveal text-lg text-text-secondary mb-7">File handling lets PHP create, open, read, write, append, and check files stored on the server.</p>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="reveal rounded-2xl border-l-4 border-accent-1 border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><h3 class="font-semibold text-xl mb-3">Common functions</h3><ul class="space-y-2 text-text-secondary"><li><code>fopen()</code> – open a file</li><li><code>fread()</code> – read file contents</li><li><code>fwrite()</code> – write data to a file</li><li><code>fclose()</code> – close an open file</li><li><code>file_exists()</code> – check availability</li></ul></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+<pre class="text-[15px] leading-7 text-cyan-200 whitespace-pre-wrap">&lt;?php
+$file = fopen("notes.txt", "w");
+fwrite($file, "PHP file handling demo");
+fclose($file);
+?&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="7">
+    <div class="gradient-mesh"><div class="blob" style="width:360px;height:360px;top:-80px;right:-60px;background:var(--color-accent-3);opacity:.08"></div><div class="blob" style="width:240px;height:240px;bottom:-60px;left:-40px;background:var(--color-accent-2);opacity:.07"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-3">File uploading workflow</h2>
+      <div class="grid grid-cols-2 gap-8 items-start mt-6">
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl">
+          <h3 class="font-semibold text-xl mb-3">Steps</h3>
+          <ol class="space-y-3 text-lg text-text-secondary list-decimal pl-5">
+            <li>Create an HTML form with <code>method="post"</code>.</li>
+            <li>Set <code>enctype="multipart/form-data"</code>.</li>
+            <li>Use file input and submit button.</li>
+            <li>Process the file using the <code>$_FILES</code> array.</li>
+            <li>Validate name, type, size, and move the file to a target folder.</li>
+          </ol>
+        </div>
+        <div class="reveal rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+<pre class="text-[14px] leading-6 text-emerald-200 whitespace-pre-wrap">&lt;form action="upload.php" method="post"
+      enctype="multipart/form-data"&gt;
+  &lt;input type="file" name="myfile"&gt;
+  &lt;input type="submit" value="Upload"&gt;
+&lt;/form&gt;</pre>
+<pre class="text-[14px] leading-6 text-cyan-200 whitespace-pre-wrap mt-4">&lt;?php
+move_uploaded_file(
+  $_FILES["myfile"]["tmp_name"],
+  "uploads/" . $_FILES["myfile"]["name"]
+);
+?&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="8">
+    <div class="gradient-mesh"><div class="blob" style="width:360px;height:360px;top:-80px;right:-60px;background:var(--color-accent-1);opacity:.08"></div><div class="blob" style="width:250px;height:250px;bottom:-50px;left:-40px;background:var(--color-accent-2);opacity:.06"></div></div>
+    <canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1"></canvas>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-4">Upload security checks</h2>
+      <div class="grid grid-cols-3 gap-5 mt-6">
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">📏</div><h3 class="text-xl font-semibold mb-2">Size validation</h3><p class="text-text-secondary">Reject very large files to save storage and prevent misuse.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">🧪</div><h3 class="text-xl font-semibold mb-2">Type validation</h3><p class="text-text-secondary">Allow only safe extensions like PDF, JPG, PNG, or DOCX.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">📂</div><h3 class="text-xl font-semibold mb-2">Target folder</h3><p class="text-text-secondary">Store files in a controlled directory and rename them if needed.</p></div>
+      </div>
+      <div class="reveal mt-8 grid grid-cols-[180px_1fr_70px] gap-4 items-center">
+        <div class="text-text-secondary">Validation importance</div>
+        <div class="bar-track"><div class="bar-fill" data-width="95"></div></div>
+        <div class="text-right text-accent-2 font-semibold">95%</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="9">
+    <div class="gradient-mesh"><div class="blob" style="width:350px;height:350px;top:-70px;right:-60px;background:var(--color-accent-2);opacity:.08"></div><div class="blob" style="width:240px;height:240px;bottom:-50px;left:-40px;background:var(--color-accent-1);opacity:.07"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-4">Email basics in PHP</h2>
+      <div class="grid grid-cols-2 gap-6 mt-6">
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl">
+          <h3 class="text-xl font-semibold mb-3">What email needs</h3>
+          <ul class="space-y-3 text-lg text-text-secondary">
+            <li>Recipient address</li>
+            <li>Subject line</li>
+            <li>Message body</li>
+            <li>Headers such as From, Reply-To, MIME-Version, and Content-Type</li>
+          </ul>
+        </div>
+        <div class="reveal rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+<pre class="text-[14px] leading-6 text-cyan-200 whitespace-pre-wrap">&lt;?php
+$to = "student@example.com";
+$subject = "PHP mail demo";
+$message = "This email is sent from PHP";
+$headers = "From: admin@example.com";
+mail($to, $subject, $message, $headers);
+?&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="10">
+    <div class="gradient-mesh"><div class="blob" style="width:350px;height:350px;top:-70px;right:-60px;background:var(--color-accent-1);opacity:.08"></div><div class="blob" style="width:250px;height:250px;bottom:-50px;left:-40px;background:var(--color-accent-3);opacity:.06"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-4">Email with attachments</h2>
+      <p class="reveal text-lg text-text-secondary mb-6">To send an attachment, PHP builds a multipart MIME email, encodes the file with base64, and places it inside the message body.</p>
+      <div class="grid grid-cols-3 gap-5">
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">📎</div><h3 class="text-xl font-semibold mb-2">Attachment file</h3><p class="text-text-secondary">Read the file from local storage using file functions.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">🔐</div><h3 class="text-xl font-semibold mb-2">Base64 encoding</h3><p class="text-text-secondary">Convert binary content into email-safe text format.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><div class="text-4xl mb-3">🧾</div><h3 class="text-xl font-semibold mb-2">MIME boundary</h3><p class="text-text-secondary">Separate the HTML body and the attached file inside one email.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="11">
+    <div class="gradient-mesh"><div class="blob" style="width:360px;height:360px;top:-70px;right:-60px;background:var(--color-accent-2);opacity:.08"></div><div class="blob" style="width:250px;height:250px;bottom:-50px;left:-40px;background:var(--color-accent-1);opacity:.06"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-4">Databases with PHP</h2>
+      <div class="grid grid-cols-2 gap-8 items-center">
+        <div>
+          <p class="reveal text-lg text-text-secondary mb-5">PHP commonly connects to MySQL to store and retrieve structured data such as user details, marks, uploaded file info, and messages.</p>
+          <div class="reveal grid grid-cols-2 gap-4">
+            <div class="rounded-2xl bg-glass-bg border border-glass-border p-5 backdrop-blur-xl"><div class="text-3xl mb-2">➕</div><div class="font-semibold">Create</div><div class="text-text-secondary">Insert new records</div></div>
+            <div class="rounded-2xl bg-glass-bg border border-glass-border p-5 backdrop-blur-xl"><div class="text-3xl mb-2">📖</div><div class="font-semibold">Read</div><div class="text-text-secondary">Fetch rows from a table</div></div>
+            <div class="rounded-2xl bg-glass-bg border border-glass-border p-5 backdrop-blur-xl"><div class="text-3xl mb-2">✏️</div><div class="font-semibold">Update</div><div class="text-text-secondary">Modify existing data</div></div>
+            <div class="rounded-2xl bg-glass-bg border border-glass-border p-5 backdrop-blur-xl"><div class="text-3xl mb-2">🗑️</div><div class="font-semibold">Delete</div><div class="text-text-secondary">Remove unwanted records</div></div>
+          </div>
+        </div>
+        <div class="reveal rounded-2xl border border-glass-border bg-slate-950/35 p-6 backdrop-blur-xl">
+<pre class="text-[14px] leading-6 text-emerald-200 whitespace-pre-wrap">&lt;?php
+$conn = mysqli_connect(
+  "localhost", "root", "", "college"
+);
+$sql = "SELECT * FROM students";
+$result = mysqli_query($conn, $sql);
+?&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="12">
+    <div class="gradient-mesh"><div class="blob" style="width:360px;height:360px;top:-80px;right:-60px;background:var(--color-accent-1);opacity:.08"></div><div class="blob" style="width:250px;height:250px;bottom:-50px;left:-40px;background:var(--color-accent-2);opacity:.06"></div></div>
+    <div class="content">
+      <h2 class="reveal font-display text-[clamp(2rem,4vw,3rem)] mb-4">Real-world applications</h2>
+      <div class="grid grid-cols-3 gap-5 mt-6">
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><h3 class="text-xl font-semibold mb-2">Student portals</h3><p class="text-text-secondary">Handle login, profile editing, assignments, and result viewing.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><h3 class="text-xl font-semibold mb-2">Job or resume portals</h3><p class="text-text-secondary">Upload resumes, store applicant data, and email confirmations.</p></div>
+        <div class="reveal rounded-2xl border border-glass-border bg-glass-bg p-6 backdrop-blur-xl"><h3 class="text-xl font-semibold mb-2">E-commerce sites</h3><p class="text-text-secondary">Manage products, orders, invoices, and customer messages.</p></div>
+      </div>
+      <div class="reveal mt-8 rounded-2xl border-l-4 border-accent-2 border border-glass-border bg-glass-bg p-6 backdrop-blur-xl text-lg text-text-secondary">A single PHP-based web application can combine form processing, file uploads, email notifications, and MySQL storage in one workflow.</div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="13">
+    <div class="gradient-mesh"><div class="blob" style="width:420px;height:420px;top:-90px;right:-60px;background:var(--color-accent-1);opacity:.15"></div><div class="blob" style="width:280px;height:280px;bottom:-60px;left:-40px;background:var(--color-accent-2);opacity:.12"></div><div class="blob" style="width:220px;height:220px;top:35%;left:18%;background:var(--color-accent-3);opacity:.10"></div></div>
+    <canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1"></canvas>
+    <div class="content text-center">
+      <div class="emoji-hero">✅</div>
+      <h2 class="reveal font-display text-[clamp(2.4rem,5vw,4.2rem)] bg-linear-to-br from-accent-1 via-accent-2 to-accent-3 bg-clip-text text-transparent mb-4">Thank You</h2>
+      <p class="reveal text-xl text-text-secondary">PHP makes dynamic websites possible through server-side logic, file management, email communication, and database connectivity.</p>
+      <p class="reveal mt-6 uppercase tracking-[5px] text-text-muted">Questions and discussion</p>
+    </div>
+  </section>
+</div>
+
+<div class="nav-controls" aria-label="Slide navigation">
+  <button class="nav-btn" onclick="changeSlide(-1)" aria-label="Previous slide">&#8249;</button>
+  <div class="slide-dots" id="dots"></div>
+  <button class="nav-btn" onclick="changeSlide(1)" aria-label="Next slide">&#8250;</button>
+  <span class="slide-counter" id="counter">1 / 13</span>
+</div>
+
+<script>
+let current = 1;
+const total = document.querySelectorAll('.slide').length;
+const dotsContainer = document.getElementById('dots');
+const counter = document.getElementById('counter');
+for (let i = 1; i <= total; i++) { const dot = document.createElement('div'); dot.className = 'dot' + (i === 1 ? ' active' : ''); dot.onclick = () => goToSlide(i); dotsContainer.appendChild(dot); }
+function goToSlide(n) { const prev = document.querySelector('.slide.active'); const next = document.querySelector(`.slide[data-slide="${n}"]`); if (prev) prev.classList.remove('active'); if (next) { next.classList.add('active'); animateSlide(next); } current = n; updateNav(); }
+function changeSlide(dir) { let next = current + dir; if (next < 1) next = total; if (next > total) next = 1; goToSlide(next); }
+function updateNav() { document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i + 1 === current)); counter.textContent = current + ' / ' + total; }
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); } if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); } });
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => { const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1); });
+function animateSlide(slide) {
+  slide.querySelectorAll('.reveal').forEach((el, i) => {
+    el.style.transition = 'none'; el.style.opacity = '0'; el.style.transform = 'translateY(20px)'; el.offsetHeight;
+    const delay = i * 0.08; el.style.transition = `opacity 0.35s ease ${delay}s, transform 0.35s ease ${delay}s`; el.style.opacity = '1'; el.style.transform = 'translateY(0px)';
+  });
+  slide.querySelectorAll('.bar-fill:not(.fill-init)').forEach((bar, i) => { bar.classList.add('fill-init'); bar.style.width = '0%'; bar.style.transition = `width 0.55s ease ${i * 0.08}s`; bar.offsetHeight; bar.style.width = bar.dataset.width + '%'; });
+}
+document.addEventListener('mousemove', e => { const spotlight = document.querySelector('.mouse-spotlight'); if (spotlight) { const rgb = getComputedStyle(document.documentElement).getPropertyValue('--glow-color-rgb').trim() || '124,58,237'; spotlight.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(${rgb}, 0.06), transparent 40%)`; } });
+window.initParticles = function(canvas, options) {
+  if (!canvas) return; const ctx = canvas.getContext('2d'); canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; const interactive = options.interactive !== false; const count = options.count || (interactive ? 55 : 18); let mx = -1000, my = -1000; const rgb = getComputedStyle(document.documentElement).getPropertyValue('--glow-color-rgb').trim() || '124,58,237'; const [r,g,b] = rgb.split(',').map(Number); const particles = Array.from({ length: count }, () => ({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3, size:Math.random()*2.5+0.8, alpha:Math.random()*0.35+0.1 }));
+  if (interactive) { canvas.addEventListener('mousemove', e => { const rect = canvas.getBoundingClientRect(); mx = e.clientX - rect.left; my = e.clientY - rect.top; }); canvas.addEventListener('mouseleave', () => { mx = -1000; my = -1000; }); }
+  (function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p => { if (interactive) { const dx = p.x - mx, dy = p.y - my, dist = Math.sqrt(dx*dx + dy*dy) || 1; if (dist < 120) { const force = (120 - dist) / 120 * 2; p.vx += (dx / dist) * force * 0.1; p.vy += (dy / dist) * force * 0.1; } } p.vx *= 0.98; p.vy *= 0.98; p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0; if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = `rgba(${r},${g},${b},${p.alpha})`; ctx.fill(); }); requestAnimationFrame(animate); })();
+};
+document.querySelectorAll('.particle-canvas').forEach(c => window.initParticles(c, { interactive: true, count: 55 }));
+document.querySelectorAll('.particle-canvas-ambient').forEach(c => window.initParticles(c, { interactive: false, count: 18 }));
+try { animateSlide(document.querySelector('.slide.active')); } catch(e) {}
+</script>
+</body>
+</html>
